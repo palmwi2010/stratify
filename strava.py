@@ -5,38 +5,35 @@ import os
 import time
 import math
 from datetime import datetime
+from db_utils import db_execute
 
+# Load environment variables
+load_dotenv()
+
+# Set fields to keep
 FIELDS = ['id', 'name', 'distance', 'moving_time', 'elapsed_time', 'total_elevation_gain', 'type', 
 'start_date_local', 'achievement_count', 'kudos_count', 'start_latlng', 'average_speed', 'max_speed', 'average_cadence', 
 'average_watts', 'max_watts', 'weighted_average_watts', 'kilojoules', 'device_watts', 'has_heartrate', 
 'average_heartrate', 'max_heartrate', 'elev_high', 'elev_low', 'pr_count', 'suffer_score']
 
-# Load environment variables
-load_dotenv()
-
 class Strava:
     def __init__(self):
+
+        # Load authentication variables
         self.client_id = os.getenv('CLIENT_ID')
         self.secret = os.getenv('CLIENT_SECRET')
+
+        # Set base url
         self.baseUrl = "https://www.strava.com"
 
-        #self.access = "a470721ed05d45684b7ead9a969d782f8f9a0f46"
-        #self.refresh = "1134629d6b7dbc1e879d1c9b91614d27a15227b3"
-        
-        #self.expires_at = 0
-        
-        #self.access_root = "4fbfcf70fd18ba464357939fbde5b8e182278772"
-        #self.refresh_root = "0f2cd0013ad5975e83a72b5f877ac2bbb8798a55"
-        
-        self.activities = []
-        self.activities_summ = []
 
     def authenticate(self):
+        """Generates an OAuth2 authorization URL for user authentication with Strava. Returns str: authorisation URL"""
 
-        # This information is obtained upon registration of a new GitHub
+        # Set parameters for OAuth submission
         client_id = self.client_id
         client_secret = self.secret
-        auth_base_url = 'https://www.strava.com/oauth/authorize'
+        auth_base_url = f"{self.baseUrl}/oauth/authorize"
         redirect_url = 'http://127.0.0.1:5000/authorise'
         scope = ["profile:read_all,read_all,activity:read_all"]
 
@@ -49,24 +46,24 @@ class Strava:
         return auth_link[0]
 
     def exchange(self, code):
+        """Exchanges authorisation code for access key and refresh key from Strava. Returns {}: dict of results including access_token and refresh_token"""
 
-        # Get url
+        # Get url for auth exchange
         url = f"{self.baseUrl}/oauth/token"
 
         # Set payload
         payload = {
             "client_id": self.client_id,
             "client_secret": self.secret,
-            "code": code
-        }
+            "code": code}
 
         # Submit for requests
         r = requests.post(url, payload)
 
         # Check for status
         if r.status_code != 200:
-            print("Request to refresh access token failed with error code " + str(r.status_code))
-            return []
+            err_msg = "Request to refresh access token failed with error code " + str(r.status_code)
+            raise Exception(err_msg)
         
         # Output results and reassign
         results = r.json()
@@ -79,66 +76,44 @@ class Strava:
     
         return results
 
-    def refresh_key(self):
+    def refresh_key(self, refresh_token):
+        """Refresh the access key using refresh token"""
 
+        # Set url and payload
         url = f"{self.baseUrl}/oauth/token"
-
         payload = {
             "client_id": self.client_id,
             "client_secret": self.secret,
             "grant_type": "refresh_token",
-            "refresh_token": self.refresh
-        }
+            "refresh_token": refresh_token}
 
+        # Submit request
         r = requests.post(url, payload)
 
         # Check for status
         if r.status_code != 200:
-            print("Request to refresh access token failed with error code " + str(r.status_code))
-            return []
+            err_msg = "Request to refresh access token failed with error code " + str(r.status_code)
+            return Exception(err_msg)
         
         # Output results and reassign
         results = r.json()
         self.access = results['access_token']
         self.expires_at = results['expires_at']        
 
-    def get_activities_new(self, page, creds):
 
-            # Get URL
-            url = f"{self.baseUrl}/api/v3/athlete/activities"
-
-            # Check if previous access key had expired, and if so request another
-            #if time.time() > self.expires_at:
-            #    self.refresh_key()
-
-            # Set header
-            params = {"per_page": 200, "page":page + 1}
-            headers = {"Authorization": f"Bearer {creds['access_key']}"}
-            r = requests.get(url, params = params, headers = headers)
-
-            # Check for status
-            if r.status_code != 200:
-                err_message = f"Request to Strava API failed with error code {str(r.status_code)}"
-                raise Exception(err_message)
-            
-            # Get results for required fields
-            raw = r.json()
-            results = [{key:row.get(key, 'n/a') for key in FIELDS} for row in raw]
-            return self.calculated_fields(results)
-
-
-    def get_activities(self, page, creds=[]):
+    def get_activities(self, page, creds):
+        """Get all activities for the user"""
 
         # Get URL
         url = f"{self.baseUrl}/api/v3/athlete/activities"
 
         # Check if previous access key had expired, and if so request another
-        if time.time() > self.expires_at:
-            self.refresh_key()
+        #if time.time() > self.expires_at:
+        #    self.refresh_key()
 
         # Set header
         params = {"per_page": 200, "page":page + 1}
-        headers = {"Authorization": f"Bearer {self.access}"}
+        headers = {"Authorization": f"Bearer {creds['access_key']}"}
         r = requests.get(url, params = params, headers = headers)
 
         # Check for status
@@ -151,8 +126,11 @@ class Strava:
         results = [{key:row.get(key, 'n/a') for key in FIELDS} for row in raw]
         return self.calculated_fields(results)
 
-    def calculated_fields(self, results):
 
+    def calculated_fields(self, results):
+        """Takes list of activities as input and adds calculated and reformatted fields before returning the updated list"""
+
+        # Check results not empty
         if results == []:
             print("No activities found")
             return
@@ -206,21 +184,39 @@ class Strava:
         return results
 
 
+    def refresh_activities(self, user_id, DB_PATH = "strava_app.db", refresh_all = False):
 
+        # Get credentials
+        creds = db_execute(DB_PATH, "SELECT access_key, refresh_key, key_expires FROM users WHERE id = ?", (user_id,))[0]
 
+        # Request all activities
+        index = 0
+        activities = []
+        while True:
+            try:
+                activities.extend(self.get_activities(page = index, creds = creds))
+            except Exception as e:
+                print(f"Exiting activity refresh on loop {index} - error message {e}")
+                break
+            index += 1
 
-#strava = Strava()
-#out = strava.get_activities(0)
+        # Get all IDs from the current activities db
+        activity_ids = [row['id'] for row in db_execute(DB_PATH, "SELECT id FROM activities")]
 
+        # Loop through rows and add them to the db
+        for row in activities:
 
-fields_all = ['resource_state', 'athlete', 'name', 'distance', 'moving_time', 
-'elapsed_time', 'total_elevation_gain', 'type', 'sport_type', 'workout_type', 
-'id', 'start_date', 'start_date_local', 'timezone', 'utc_offset', 
-'location_city', 'location_state', 'location_country', 'achievement_count', 
-'kudos_count', 'comment_count', 'athlete_count', 'photo_count', 'map', 'trainer', 
-'commute', 'manual', 'private', 'visibility', 'flagged', 'gear_id', 'start_latlng', 
-'end_latlng', 'average_speed', 'max_speed', 'average_cadence', 'average_watts', 'max_watts', 
-'weighted_average_watts', 'kilojoules', 'device_watts', 'has_heartrate', 'average_heartrate', 
-'max_heartrate', 'heartrate_opt_out', 'display_hide_heartrate_option', 'elev_high', 'elev_low', 
-'upload_id', 'upload_id_str', 'external_id', 'from_accepted_tag', 'pr_count', 'total_photo_count', 
-'has_kudoed', 'suffer_score']
+            # Check if the activity id is already in the database, in which case skip
+            if row['id'] in activity_ids:
+                continue
+
+            # Add the athlete id
+            row['athlete_id'] = user_id
+
+            # Otherwise, insert into the db
+            stmt_keys = ', '.join([key for key in row.keys()])
+            stmt_queries = ('?,' * len(row.keys()))[:-1]
+            stmt_args = tuple(list(row.values()))
+
+            # Execute the query
+            db_execute(DB_PATH, f"INSERT INTO activities ({stmt_keys}) VALUES ({stmt_queries})", params=stmt_args)

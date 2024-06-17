@@ -2,8 +2,8 @@ from flask import Flask, flash, get_flashed_messages, render_template, redirect,
 from flask_session import Session
 from flask_bcrypt import Bcrypt
 
-from db_init import SQL
-from helpers import login_required, validate_credentials, db_execute, apology, refresh_activities, strava_authenticate
+from db_utils import db_init, db_execute
+from helpers import login_required, validate_credentials, apology
 from strava import Strava
 import requests
 import math
@@ -20,6 +20,7 @@ Session(app)
 # Initialize bcrypt for password hashing and set up database connection
 bcrypt = Bcrypt(app)
 DB_PATH = "strava_app.db"
+db_init()
 strava = Strava()
 activities = []
 
@@ -39,14 +40,10 @@ def index():
     # If user clicks refresh, refresh the activities
     if request.method == "POST":
         if request.form.get('refresh') == "1":
-            refresh_activities(session['user_id'], DB_PATH=DB_PATH)
+            strava.refresh_activities(session['user_id'], DB_PATH=DB_PATH)
 
     # Get the results from SQL
     activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ?;", params = (session['user_id'],))
-
-    # If no activities, go back to authorise
-    #if len(activities) == 0:
-        #return redirect("/authorise") 
 
     return render_template("index.html", activities = activities)
 
@@ -156,8 +153,11 @@ def authorise():
                 (results['access_token'], results['refresh_token'], results['expires_at']))
             return redirect('/')
 
+    if err_msg != '':
+        return apology(err_msg)
+
     # Get url for strava authentication
     auth_url = strava.authenticate()
 
     # Render template for authorisation
-    return render_template("authorise.html", auth_url = auth_url, auth_code = auth_code, err_msg=err_msg)
+    return render_template("authorise.html", auth_url = auth_url)
