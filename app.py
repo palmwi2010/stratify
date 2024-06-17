@@ -157,7 +157,8 @@ def authorise():
         return apology(err_msg)
 
     # Get url for strava authentication
-    auth_url = strava.authenticate(request.base_url)
+    redirect_uri = request.url_root +"/authorise"
+    auth_url = strava.authenticate(redirect_uri)
 
     # Render template for authorisation
     return render_template("authorise.html", auth_url = auth_url)
