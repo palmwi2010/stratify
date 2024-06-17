@@ -10,7 +10,7 @@ import math
 
 # Configure application
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 
 # Configure system to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -157,7 +157,7 @@ def authorise():
         return apology(err_msg)
 
     # Get url for strava authentication
-    auth_url = strava.authenticate()
+    auth_url = strava.authenticate(request.base_url)
 
     # Render template for authorisation
     return render_template("authorise.html", auth_url = auth_url)

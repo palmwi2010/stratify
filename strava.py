@@ -27,18 +27,17 @@ class Strava:
         self.baseUrl = "https://www.strava.com"
 
 
-    def authenticate(self):
+    def authenticate(self, redirect_uri):
         """Generates an OAuth2 authorization URL for user authentication with Strava. Returns str: authorisation URL"""
 
         # Set parameters for OAuth submission
         client_id = self.client_id
         client_secret = self.secret
         auth_base_url = f"{self.baseUrl}/oauth/authorize"
-        redirect_url = 'http://127.0.0.1:5000/authorise'
         scope = ["profile:read_all,read_all,activity:read_all"]
 
         # Create session variable
-        session = OAuth2Session(client_id=client_id, redirect_uri=redirect_url, scope = scope)
+        session = OAuth2Session(client_id=client_id, redirect_uri=redirect_uri, scope = scope)
 
         # Get auth link
         auth_link = session.authorization_url(auth_base_url)
