@@ -1,0 +1,113 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url('./media/background.jpg');
+}
+
+.nav-menu {
+    background-color: rgb(248, 236, 218);
+}
+
+.forms-input {
+    width: 30%;
+    min-width: 35rem;
+    text-align: left;
+    background-color: #EEEEEE;
+    border-radius: 1rem;
+    padding: 2rem;
+}
+
+.forms-input h1 {
+    text-align: center;
+}
+
+.forms-input label {
+    font-size: 1.2rem;
+}
+
+.nav-item {
+    font-size: 1.2rem;
+}
+
+.feedback {
+    font-size: 0.9rem;
+    color:red
+}
+
+/* Activity table styling*/
+
+.activities_table tr {
+    opacity: 0.8;
+    line-height: 3rem;
+    min-height: 3rem;
+    height: 3rem;
+ }
+
+ .activity_type_img {
+    height: 2rem;
+    width: 2rem;
+    margin-right:1rem;
+ }
+
+.activities_table th {
+    background-color:rgb(248, 236, 218);
+    font-size: 1.2rem;
+    margin: 0.2rem;
+    padding:0.2rem;
+}
+
+.table_container {
+    max-width:1400px;
+}
+
+.activities_table tr:hover{
+    cursor: pointer;
+}
+
+.activities_table tr:hover td {
+    background-color: #DDDDDD
+}
+
+.activities_table img {
+    box-sizing: content-box; /* or "initial" */
+}
+
+.activities_table td {
+    margin: 0.2rem;
+    padding:0.2rem;
+}
+
+/* Home: Refresh button*/
+
+.refresh-container {
+    margin-top:1rem;
+    display: inline-block;
+    cursor:pointer;
+    margin-left: 0.9rem;
+    padding:0.5rem;
+    padding-bottom: 0;
+    transition: 0.3s all ease;
+    border-radius: 1rem;
+}
+
+.refresh-container img {
+    width:2rem;
+}
+
+.refresh-container p {
+    display: inline-block;
+    font-size: 1.2rem;
+    border-radius: 1px;
+    font-weight: 400;
+    transition: background-color 0.3s ease, color 0.3s ease, font-size 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.refresh-container:hover {
+    background-color: #EF6E35;
+}
+
+.refresh-container:hover > p {
+    color: #FFFFFF;
+    font-size: 1.3rem;
+}

@@ -1,0 +1,125 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block main %}
+<form id = "refresh-button" method = "post" action = "/">
+    <div class = "refresh-container" onclick="document.getElementById('refresh-button').submit();">
+        <img src="/static/media/refresh.png" alt="Refresh activities" id="refresh-img">
+        <p>Refresh activities</p>
+
+        <input type = "text" style = "display:none;" name = "refresh" value=1></input>
+    </div>
+</form>
+
+{% if activities %}
+<div class = "container table_container">
+    <div class="check-container ms-2 mt-3">
+        <input type="checkbox" checked class="activity-type form-check-input" value="Run" id = "run-check"></input>
+            <label class="form-check-label" for="run-check">Run</label>
+        <input type="checkbox" checked class="activity-type form-check-input" value="Ride" id="ride-check"></input>
+            <label class="form-check-label" for="ride-check">Ride</label>
+        <input type="checkbox" checked class="activity-type form-check-input" value="Walk" id="walk-check"></input>
+            <label class="form-check-label" for="walk-check">Walk</label>
+    </div>
+    <div class = "table-responsive-md mx-2 mt-4">
+        <table class = "table activities_table" id="main-table">
+            <thead>
+                <th scope = "col">Activity</th>
+                <th scope = "col">Date</th>
+                <th scope = "col">Distance</th>
+                <th scope = "col">Time</th>
+                <th scope = "col">Pace</th>
+                <th scope = "col">Average HR</th>
+                <th scope = "col">Max HR</th>
+                <th scope = "col">Kudos</th>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                
+                    <tr>
+                            <td data-filter={{activity['type']}}>
+                                {% if activity['type'] == 'Ride' %}
+                                <img class = "activity_type_img" src="/static/media/strava_cycle_a.png">
+                                {% else %}
+                                <img class = "activity_type_img" src="/static/media/strava_run.png">
+                                {% endif %}
+                                <a href="https://www.strava.com/activities/{{activity['id']}}" target="_blank" class="link-primary">
+                                    {{activity['name']}}
+                                </a>
+                            </td>
+                            <td data-order = {{activity['date_sort']}} data-filter = {{activity['name']}}>{{activity['date']}}</td>
+                            <td data-order = {{activity['distance']}}>{{activity['distance_f']}}</td>
+                            <td data-order = {{activity['moving_time']}}>{{activity['moving_time_f']}}</td>
+                            <td data-order={{activity['average_speed']}}>{{activity['pace']}}</td>
+                            <td data-order={{activity['average_heartrate_sort']}}>{{activity['average_heartrate']}}</td>
+                            <td data-order={{activity['max_heartrate_sort']}}>{{activity['max_heartrate']}}</td>
+                            <td>{{activity['kudos_count']}}</td>
+                        </a>
+                    </tr>
+                
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div>
+    <p>No activities to show!</p>
+</div>
+{% endif %}
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        var table = document.querySelector('.table_container');
+        table.style.display='table';
+    })
+
+    $(document).ready(function () {
+      var table = $('#main-table').DataTable({
+        columns: [
+            {orderable: false, searchable: false},
+            {},
+            {searchable: false},
+            {searchable: false},
+            {searchable: false},
+            {searchable: false},
+            {searchable: false},
+            {searchable: false}
+        ], "aaSorting": []
+      });
+    
+    // Event handler for checkbox changes
+    $('.activity-type').change(function () {
+
+        var selectedValues = [];  // Array to store selected checkbox values
+
+        // Collect checked checkbox values
+        $('.activity-type:checked').each(function () {
+            selectedValues.push($(this).val());
+        });
+
+        // Clear existing filters
+        $.fn.dataTable.ext.search.splice(0, $.fn.dataTable.ext.search.length);
+
+        // Custom filtering function
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+                var filterValue = $(table.row(dataIndex).node()).find('td[data-filter]').data('filter');
+                
+                // Example: Check if the first column value is in selectedValues array
+                if (selectedValues.length === 0) {
+                    return false; // Show no rows if no checkboxes are checked
+                } else {
+                    return selectedValues.includes(filterValue); // Example: Filter based on first column
+                }
+            }
+        );
+        table.draw();
+        });
+    });
+</script>
+
+{% endblock %}
