@@ -75,7 +75,7 @@ class Strava:
     
         return results
 
-    def refresh_key(self, refresh_token):
+    def refresh_key(self, creds):
         """Refresh the access key using refresh token"""
 
         # Set url and payload
@@ -84,7 +84,7 @@ class Strava:
             "client_id": self.client_id,
             "client_secret": self.secret,
             "grant_type": "refresh_token",
-            "refresh_token": refresh_token}
+            "refresh_token": creds["refresh_key"]}
 
         # Submit request
         r = requests.post(url, payload)
@@ -96,19 +96,17 @@ class Strava:
         
         # Output results and reassign
         results = r.json()
-        self.access = results['access_token']
-        self.expires_at = results['expires_at']        
+        creds["access_key"] = results['access_token']
+        creds["key_expires"] = results['expires_at']
+
+        return creds        
 
 
-    def get_activities(self, page, creds):
+    def get_activities(self, page, creds, user_id):
         """Get all activities for the user"""
 
         # Get URL
         url = f"{self.baseUrl}/api/v3/athlete/activities"
-
-        # Check if previous access key had expired, and if so request another
-        #if time.time() > self.expires_at:
-        #    self.refresh_key()
 
         # Set header
         params = {"per_page": 200, "page":page + 1}
@@ -188,12 +186,19 @@ class Strava:
         # Get credentials
         creds = db_execute(DB_PATH, "SELECT access_key, refresh_key, key_expires FROM users WHERE id = ?", (user_id,))[0]
 
+        # Check if access key needs to be refreshed
+        if time.time() > creds['key_expires']:
+
+            # Get new creds and update db
+            creds = self.refresh_key(creds)
+            db_execute(DB_PATH, "UPDATE users SET access_key = ?, key_expires = ? WHERE id = ?", (creds["access_key"], creds["key_expires"], user_id))
+
         # Request all activities
         index = 0
         activities = []
         while True:
             try:
-                activities.extend(self.get_activities(page = index, creds = creds))
+                activities.extend(self.get_activities(page = index, creds = creds, user_id = user_id))
             except Exception as e:
                 print(f"Exiting activity refresh on loop {index} - error message {e}")
                 break

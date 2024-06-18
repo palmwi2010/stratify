@@ -7,6 +7,8 @@ from helpers import login_required, validate_credentials, apology
 from strava import Strava
 import requests
 import math
+from dotenv import load_dotenv
+import os
 
 # Configure application
 app = Flask(__name__)
@@ -19,10 +21,10 @@ Session(app)
 
 # Initialize bcrypt for password hashing and set up database connection
 bcrypt = Bcrypt(app)
-DB_PATH = "strava_app.db"
+load_dotenv()
+DB_PATH = os.getenv('DB_PATH')
 db_init()
 strava = Strava()
-activities = []
 
 # Ensure no caching of responses
 @app.after_request

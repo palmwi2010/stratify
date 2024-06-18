@@ -1,7 +1,12 @@
 import sqlite3
 from sqlite3 import Error
+from dotenv import load_dotenv
+import os
 
-DB_PATH = 'strava_app.db'
+# Load environment variables
+load_dotenv()
+DB_PATH = os.getenv('DB_PATH')
+
 
 class SQL(sqlite3.Connection):
     def __init__(self, path):
