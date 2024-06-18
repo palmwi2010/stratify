@@ -39,15 +39,19 @@ def after_request(response):
 @login_required
 def index():
 
+    # Assume no activity refresh
+    refreshed = False
+
     # If user clicks refresh, refresh the activities
     if request.method == "POST":
         if request.form.get('refresh') == "1":
             strava.refresh_activities(session['user_id'], DB_PATH=DB_PATH)
+            refreshed = True
 
     # Get the results from SQL
     activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ?;", params = (session['user_id'],))
 
-    return render_template("index.html", activities = activities)
+    return render_template("index.html", activities = activities, refreshed = refreshed)
 
 
 @app.route("/login", methods = ["GET", "POST"])

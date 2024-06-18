@@ -5,12 +5,21 @@ Home
 {% endblock %}
 
 {% block main %}
+
+<!--Loading screen to show during refresh-->
+<!-- vscode_ignore_jinja2 -->
+<div id = "loading">
+    <h3 class="my-3">Refreshing activities</h3>
+    <p class = "my-3">This may take a few moments...</p>
+    <img src = "/static/media/bike_loading.gif" alt="Loading...">
+</div>
+
 <form id = "refresh-button" method = "post" action = "/">
-    <div class = "refresh-container" onclick="document.getElementById('refresh-button').submit();">
-        <img src="/static/media/refresh.png" alt="Refresh activities" id="refresh-img">
+    <div class = "refresh-container" id = "refresh-container">
+        <img src="/static/media/refresh.png" alt="Refresh activities" id="refresh-img" class = "my-4">
         <p>Refresh activities</p>
 
-        <input type = "text" style = "display:none;" name = "refresh" value=1></input>
+        <input type = "hidden" style = "display:none;" name = "refresh" value=1></input>
     </div>
 </form>
 
@@ -70,11 +79,38 @@ Home
     <p>No activities to show!</p>
 </div>
 {% endif %}
+
 <script>
 
     document.addEventListener('DOMContentLoaded', () => {
-        var table = document.querySelector('.table_container');
-        table.style.display='table';
+        
+        // Get the div containing the refresh button
+        const refresh_div = document.getElementById('refresh-container');
+        const submit_button = document.getElementById('refresh-button');
+        const loading_screen = document.getElementById('loading');
+
+        function refresh() {
+            loading_screen.style.display = "block";
+            submit_button.submit();
+        }
+        
+        // Reset loading screen not to display
+        loading_screen.style.display = "none";
+
+        // Add an onclick method
+        refresh_div.addEventListener('click', e => {
+            refresh();
+        })
+
+        {% if not refreshed and not activities %}
+            var toRefresh = true;
+        {% else %}
+            var toRefresh = false;
+        {% endif %}
+
+        if (toRefresh) {
+            refresh();
+        }
     })
 
     $(document).ready(function () {

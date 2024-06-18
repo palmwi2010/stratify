@@ -1,6 +1,9 @@
 from functools import wraps
 from flask import redirect, render_template, request, session
 import re
+from db_utils import db_execute
+from dotenv import load_dotenv
+import os
 
 def apology(error):
     """Return apology page in case of error"""
