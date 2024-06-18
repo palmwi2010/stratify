@@ -53,6 +53,12 @@ def index():
 
     return render_template("index.html", activities = activities, refreshed = refreshed)
 
+@app.route("/coach")
+@login_required
+def coach():
+
+    return render_template("coach.html")
+
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
