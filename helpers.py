@@ -3,7 +3,13 @@ from flask import redirect, render_template, request, session
 import re
 from db_utils import db_execute
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
 import os
+
+# Get db path
+load_dotenv()
+DB_PATH = os.getenv('DB_PATH')
+ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
 
 def apology(error):
     """Return apology page in case of error"""
@@ -16,8 +22,11 @@ def login_required(f):
 
     @wraps(f)
     def wrapped_func(* args, ** kwargs):
-        if session.get("user_id") is None:
+        if session.get("user_id") is None: # Check there is a session id
             return redirect("/login")
+        elif len(db_execute(DB_PATH, "SELECT * FROM users WHERE id = ?", (session.get("user_id"),))) == 0:
+            return redirect("/login")
+
         return f(* args, ** kwargs)
 
     return wrapped_func
@@ -46,3 +55,28 @@ def validate_credentials(creds):
         return 3
 
     return 0
+
+
+def generate_encryption_key():
+    """Generates a new encryption key - one time use"""
+    
+    # Generate key
+    key = Fernet.generate_key()
+
+    # Optionally, write the key to a file (for backup purposes)
+    with open("secret.key", "wb") as key_file:
+        key_file.write(key)
+        
+        
+def encrypt_message(message):
+    """Encrypts a message"""
+    cipher_suite = Fernet(ENCRYPTION_KEY)
+    encrypted_message = cipher_suite.encrypt(message.encode())
+    return encrypted_message
+
+
+def decrypt_message(message):
+    """Encrypts a message"""
+    cipher_suite = Fernet(ENCRYPTION_KEY)
+    decrypted_message = cipher_suite.decrypt(message)
+    return decrypted_message.decode()

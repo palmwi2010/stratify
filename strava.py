@@ -6,6 +6,7 @@ import time
 import math
 from datetime import datetime
 from db_utils import db_execute
+from helpers import encrypt_message, decrypt_message
 
 # Load environment variables
 load_dotenv()
@@ -185,13 +186,15 @@ class Strava:
 
         # Get credentials
         creds = db_execute(DB_PATH, "SELECT access_key, refresh_key, key_expires FROM users WHERE id = ?", (user_id,))[0]
+        creds['access_key'] = decrypt_message(creds['access_key'])
+        creds['refresh_key'] = decrypt_message(creds['refresh_key'])
 
         # Check if access key needs to be refreshed
         if time.time() > creds['key_expires']:
 
             # Get new creds and update db
             creds = self.refresh_key(creds)
-            db_execute(DB_PATH, "UPDATE users SET access_key = ?, key_expires = ? WHERE id = ?", (creds["access_key"], creds["key_expires"], user_id))
+            db_execute(DB_PATH, "UPDATE users SET access_key = ?, key_expires = ? WHERE id = ?", (encrypt_message(creds["access_key"]), creds["key_expires"], user_id))
 
         # Request all activities
         index = 0

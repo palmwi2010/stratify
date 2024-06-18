@@ -3,7 +3,7 @@ from flask_session import Session
 from flask_bcrypt import Bcrypt
 
 from db_utils import db_init, db_execute
-from helpers import login_required, validate_credentials, apology
+from helpers import login_required, validate_credentials, apology, encrypt_message, decrypt_message
 from strava import Strava
 import requests
 import math
@@ -156,7 +156,7 @@ def authorise():
         # If results successfully returned, update the users table and redirect to home
         if results != []:
             db_execute(DB_PATH, "UPDATE users SET access_key = ?, refresh_key = ?, key_expires = ?", 
-                (results['access_token'], results['refresh_token'], results['expires_at']))
+                (encrypt_message(results['access_token']), encrypt_message(results['refresh_token']), results['expires_at']))
             return redirect('/')
 
     if err_msg != '':
