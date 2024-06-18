@@ -4,13 +4,21 @@ body {
     background-image: url('./media/background.jpg');
 }
 
+/* Navbar styling */
+
 .nav-menu {
     background-color: rgb(248, 236, 218);
+    width:100%;
+}
+
+.nav-item {
+    font-size: 1.2rem;
 }
 
 .forms-input {
-    width: 30%;
-    min-width: 35rem;
+    width: 50%;
+    min-width: 22rem;
+    max-width: 30rem;
     text-align: left;
     background-color: #EEEEEE;
     border-radius: 1rem;
@@ -25,9 +33,6 @@ body {
     font-size: 1.2rem;
 }
 
-.nav-item {
-    font-size: 1.2rem;
-}
 
 .feedback {
     font-size: 0.9rem;
