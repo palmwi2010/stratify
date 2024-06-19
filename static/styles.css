@@ -15,6 +15,10 @@ body {
     font-size: 1.2rem;
 }
 
+.navbar-collapse a {
+    margin-left: 0.5rem;
+}
+
 .forms-input {
     width: 50%;
     min-width: 22rem;
@@ -135,30 +139,11 @@ body {
     padding-top: 1%;
 }
 
-@media screen and (max-width:767px) {
+@media screen and (max-width:650px) {
     .big-only {
         display:none;
-        color: red;
     }
 }
-
-
-/*
-
-
-
-
-.dt-length {
-    text-align: left;
-    margin-left: 0;
-}
-
-.dt-search {
-    margin-left: 0;
-    text-align: left;
-}
-
-*/
 
 .dt-length label {
     margin-left: 0.5rem;
@@ -167,10 +152,6 @@ body {
 #dt-length-0 {
     background-color: white;
 }
-/*
-.dt-length {
-    text-align: left !important;
-}*/
 
 @media screen and (max-width:767px) {
     .dt-length {
@@ -186,3 +167,4 @@ body {
     background-color: white;
     margin-left: 0.5rem;
 }
+
