@@ -134,3 +134,55 @@ body {
     font-size: 24px;
     padding-top: 1%;
 }
+
+@media screen and (max-width:767px) {
+    .big-only {
+        display:none;
+        color: red;
+    }
+}
+
+
+/*
+
+
+
+
+.dt-length {
+    text-align: left;
+    margin-left: 0;
+}
+
+.dt-search {
+    margin-left: 0;
+    text-align: left;
+}
+
+*/
+
+.dt-length label {
+    margin-left: 0.5rem;
+}
+
+#dt-length-0 {
+    background-color: white;
+}
+/*
+.dt-length {
+    text-align: left !important;
+}*/
+
+@media screen and (max-width:767px) {
+    .dt-length {
+        text-align: right !important;
+    }
+}
+
+.dt-search {
+    text-align: right !important;
+}
+
+#dt-search-0 {
+    background-color: white;
+    margin-left: 0.5rem;
+}

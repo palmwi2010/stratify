@@ -42,8 +42,8 @@ Home
                 <th scope = "col">Time</th>
                 <th scope = "col">Pace</th>
                 <th scope = "col">Average HR</th>
-                <th scope = "col">Max HR</th>
-                <th scope = "col">Kudos</th>
+                <th scope = "col" class="big-only">Max HR</th>
+                <th scope = "col" class="big-only">Kudos</th>
             </thead>
             <tbody>
                 {% for activity in activities %}
@@ -63,9 +63,9 @@ Home
                             <td data-order = {{activity['distance']}}>{{activity['distance_f']}}</td>
                             <td data-order = {{activity['moving_time']}}>{{activity['moving_time_f']}}</td>
                             <td data-order={{activity['average_speed']}}>{{activity['pace']}}</td>
-                            <td data-order={{activity['average_heartrate_sort']}}>{{activity['average_heartrate']}}</td>
-                            <td data-order={{activity['max_heartrate_sort']}}>{{activity['max_heartrate']}}</td>
-                            <td>{{activity['kudos_count']}}</td>
+                            <td data-order={{activity['average_heartrate_sort']}} >{{activity['average_heartrate']}}</td>
+                            <td data-order={{activity['max_heartrate_sort']}} class="big-only">{{activity['max_heartrate']}}</td>
+                            <td class="big-only">{{activity['kudos_count']}}</td>
                         </a>
                     </tr>
                 
@@ -113,6 +113,7 @@ Home
         }
     })
 
+
     $(document).ready(function () {
       var table = $('#main-table').DataTable({
         columns: [
@@ -156,6 +157,8 @@ Home
         table.draw();
         });
     });
+
+
 </script>
 
 {% endblock %}
