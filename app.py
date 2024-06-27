@@ -10,6 +10,9 @@ import math
 from dotenv import load_dotenv
 import os
 
+# Run command
+# waitress-serve --listen=127.0.0.1:5000 app:app
+
 # Configure application
 app = Flask(__name__)
 app.debug = False
@@ -38,6 +41,15 @@ def after_request(response):
 @app.route("/", methods = ["GET", "POST"])
 @login_required
 def index():
+
+    # Check they have a valid access key
+    try:
+        access_key = db_execute(DB_PATH, "SELECT access_key FROM users WHERE id = ?;", params=(session["user_id"],))[0]['access_key']
+    except:
+        return apology('Could not find user id in database records.')
+    
+    if access_key is None:
+        return redirect("/authorise")
 
     # Assume no activity refresh
     refreshed = False
@@ -146,9 +158,26 @@ def logout():
     session.clear()
     return redirect("/")
 
+
 @app.route("/authorise", methods = ["GET", "POST"])
 def authorise():
 
+    # If it's been Posted, it's a deathorisation
+    if request.method == "POST":
+        if request.form.get("deauthorise") == 'deauthorise':
+            strava.deauthorise(session["user_id"], DB_PATH=DB_PATH)
+            return redirect ("/")
+
+    # Check if already authorised
+    try:
+        access_key = db_execute(DB_PATH, "SELECT access_key FROM users WHERE id = ?;", params=(session["user_id"],))[0]['access_key']
+    except:
+        return apology("Could not find user id in database records.")
+    
+    # If they already have an access key, redirect
+    if access_key is not None:
+        return render_template("authorise.html", auth_url = "", authorised = True)
+    
     # Check for an authorisation link
     auth_code = request.args.get('code','')
     err_msg = request.args.get('error', '')
@@ -173,4 +202,4 @@ def authorise():
     auth_url = strava.authenticate(redirect_uri)
 
     # Render template for authorisation
-    return render_template("authorise.html", auth_url = auth_url)
+    return render_template("authorise.html", auth_url = auth_url, authorised = False)

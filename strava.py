@@ -103,6 +103,7 @@ class Strava:
         return creds        
 
 
+
     def get_activities(self, page, creds, user_id):
         """Get all activities for the user"""
 
@@ -182,8 +183,8 @@ class Strava:
         return results
 
 
-    def refresh_activities(self, user_id, DB_PATH = "strava_app.db", refresh_all = False):
-
+    def get_creds(self, user_id, DB_PATH = "strava_app.db"):
+        
         # Get credentials
         creds = db_execute(DB_PATH, "SELECT access_key, refresh_key, key_expires FROM users WHERE id = ?", (user_id,))[0]
         creds['access_key'] = decrypt_message(creds['access_key'])
@@ -196,6 +197,14 @@ class Strava:
             creds = self.refresh_key(creds)
             db_execute(DB_PATH, "UPDATE users SET access_key = ?, key_expires = ? WHERE id = ?", (encrypt_message(creds["access_key"]), creds["key_expires"], user_id))
 
+        return creds
+
+
+    def refresh_activities(self, user_id, DB_PATH = "strava_app.db", refresh_all = False):
+
+        # Get credentials
+        creds = self.get_creds(user_id=user_id, DB_PATH=DB_PATH)
+        
         # Request all activities
         index = 0
         activities = []
@@ -227,3 +236,28 @@ class Strava:
 
             # Execute the query
             db_execute(DB_PATH, f"INSERT INTO activities ({stmt_keys}) VALUES ({stmt_queries})", params=stmt_args)
+
+    def deauthorise(self, user_id, DB_PATH):
+        """Deauthorise current user from Strava API"""
+        
+        # Set url
+        url = f"{self.baseUrl}/oauth/deauthorize"
+        
+        # Get credentials
+        creds = self.get_creds(user_id=user_id, DB_PATH=DB_PATH)
+        
+        # Set payload
+        payload = {"access_token": creds["access_key"]}
+        
+        # Create 
+        #headers = {"Authorization": f"Bearer {creds['access_key']}"}
+        r = requests.post(url, payload)
+        
+        # Check for status
+        if r.status_code != 200:
+            err_message = f"Request to deauthorise from Strava failed with error code {str(r.status_code)}"
+            raise Exception(err_message)
+
+        # Remove access keys from the db
+        db_execute(DB_PATH, "UPDATE users SET access_key = NULL, refresh_key = NULL, key_expires = NULL WHERE id = ?", (user_id,))
+        db_execute(DB_PATH, "DELETE FROM activities WHERE id = ?", (user_id,))

@@ -1,15 +1,26 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Home
+Authorisation
 {% endblock %}
 
 {% block main %}
 <div class = "container container-auth my-4">
-    <h2 mx-3>Authorisation</h2>
+<h2 mx-3>Authorisation</h2>
+{% if authorised %}
+<p mx-3>You are already authorised with Strava. Head back home to see your activities, or click remove access to deauthorise.</p>
+<a href="/" style="display:inline-block;">
+    <button class = "btn btn-primary">Home</button>
+</a>
+<form method="post" action="/authorise" style="display:inline-block">
+    <input type="hidden" name="deauthorise" value="deauthorise">
+    <button class = "btn btn-primary mx-3">Remove access</button>
+</form>
+{% else %}
     <p mx-3>We require access to your Strava activities in order to show analytics. Please visit the link below and tick all boxes!</p>
     <a href={{auth_url}}>
         <button class = "btn btn-primary my03">Connect to Strava</button>
     </a>
+{% endif %}
 </div>
 {% endblock %}
