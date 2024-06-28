@@ -196,12 +196,20 @@ body {
 }
 
 .response-container {
-    width:100%;
-    max-width: 600px;
+    width:80%;
+    max-width: 500px;
     text-align: left;
     background-color: #EEEEEE;
     border-radius: 1rem;
-    padding: 1rem 2rem;
+    padding: 1rem 1.5rem 0.2rem;
+}
+
+.coach-response {
+    margin-left: auto;
+}
+
+.user-response {
+    margin-right: 0;
 }
 
 pre {
@@ -210,4 +218,15 @@ pre {
     white-space: -pre-wrap;      /* Opera 4-6 */
     white-space: -o-pre-wrap;    /* Opera 7 */
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    font-size: 0.8rem;
+}
+
+.coach-div {
+    margin:auto;
+    width:100%;
+    max-width: 600px;
+}
+
+.chat-img {
+    width: 3rem;
 }

@@ -6,22 +6,35 @@ Home
 
 {% block main %}
 <div class = "container my-2 coach-div">
-    <h1>Stratify coach</h1>
-    <h5 class="my-2">Ask the coach a question</h5>
+    <!--<h1>Stratify coach</h1>-->
+    {% if response %}
+    {% for row in conversation_history %}
+        {% if row['role'] != 'system' %}
+            <!--<h5 class="mt-3">Coach response</h5>-->
+            {% if row['role'] == 'user' %}
+                <div class="response-container my-4 user-response">
+                <img src="https://dgalywyr863hv.cloudfront.net/pictures/athletes/54005895/27104872/1/large.jpg" class="chat-img rounded-circle">
+                <pre id="generated-response" class="mt-2 user-msg">{{row['content']}}</pre>
+            {% else %}
+                <div class="response-container my-4 coach-response">
+                <img src="/static/media/coach.png" class = "chat-img">
+                <pre id="generated-response" class="mt-2 coach-msg">{{row['content']}}</pre>
+            {% endif %}
+            </div>
+        {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <!--<h5 class="my-2">Ask the coach a question</h5>-->
     <div class="chat-container">
         <form method = "POST" action="/coach">
             <div class = "chat-form-container">
             <textarea id="coach-input" placeholder="Enter a message for the coach" name="prompt" autofocus></textarea>
-            <button class = "btn btn-primary my-1" id="submit-prompt">Submit</button>
+            <button class = "btn btn-primary my-1" id="submit-prompt" name="submit">Submit</button>
+            <button class = "btn btn-secondary my-1 mx-3" id="reset-chat" name="reset">Reset chat</button>
             </div>
         </form>
     </div>
-    {% if response %}
-        <div class="response-container my-4">
-            <h5 class="mt-3">Coach response</h5>
-            <pre id="generated-response">{{response}}</pre>
-        </div>
-    {% endif %}
 </div>
 
 <script>

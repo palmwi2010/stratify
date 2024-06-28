@@ -29,6 +29,7 @@ load_dotenv()
 DB_PATH = os.getenv('DB_PATH')
 db_init()
 strava = Strava()
+engine = None
 
 # Ensure no caching of responses
 @app.after_request
@@ -73,18 +74,31 @@ def coach():
     # If it's a POST, the user has submitted a message
     if request.method == 'POST':
         
+        # Use global engine
+        global engine
+        
+        # Check if the user reset
+        if request.form.get("reset") is not None:
+            if engine is not None:
+                engine.reset_chat()
+                return render_template("coach.html")
+        
         # Get the user prompt
         prompt = request.form.get('prompt')
         
         if prompt != "":
-            # Fire up the chat engine and get response
-            engine = ChatEngine()
+            # Fire up the chat engine if it's not already running
+            if engine is None:
+                engine = ChatEngine()
+                
+            # Get activities and submit for response
             activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ?;", params = (session['user_id'],))
             response = engine.generate_response(question=prompt, activities = activities)
+            #response = "Sorry, I can't help with that! If you have any questions about your training or fitness goals, feel free to ask!"
             print(f"Response: {response}")
             
             # Render template with the response
-            return render_template("coach.html", response = response)
+            return render_template("coach.html", response = response, conversation_history = engine.conversation_history)
 
     return render_template("coach.html")
 

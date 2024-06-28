@@ -48,6 +48,11 @@ class ChatEngine():
         return "\n\n"
     
     
+    def reset_chat(self):
+        """Clear conversation history"""
+        self.conversation_history = self.root_conversation_history
+    
+    
     def generate_response(self, question, activities = [], model = "gpt-3.5-turbo", max_context_tokens = 500, max_output = 300):
         """Answer a question based on the most similar context from the dataframe texts"""
 
