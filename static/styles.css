@@ -168,3 +168,46 @@ body {
     margin-left: 0.5rem;
 }
 
+/*Coach screen*/
+.chat-container {
+    width:100%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#coach-input {
+    font-size: 0.8rem;
+    width:100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #EEEEEE;
+    border-radius:4px;
+    box-sizing: border-box;
+    min-height: 50px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#coach-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.response-container {
+    width:100%;
+    max-width: 600px;
+    text-align: left;
+    background-color: #EEEEEE;
+    border-radius: 1rem;
+    padding: 1rem 2rem;
+}
+
+pre {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}

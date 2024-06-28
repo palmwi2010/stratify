@@ -5,8 +5,68 @@ Home
 {% endblock %}
 
 {% block main %}
-<div class = "container my-4">
-    <h2 mx-3>Coach</h2>
-    <p mx-3>Coming soon!</p>
+<div class = "container my-2 coach-div">
+    <h1>Stratify coach</h1>
+    <h5 class="my-2">Ask the coach a question</h5>
+    <div class="chat-container">
+        <form method = "POST" action="/coach">
+            <div class = "chat-form-container">
+            <textarea id="coach-input" placeholder="Enter a message for the coach" name="prompt" autofocus></textarea>
+            <button class = "btn btn-primary my-1" id="submit-prompt">Submit</button>
+            </div>
+        </form>
+    </div>
+    {% if response %}
+        <div class="response-container my-4">
+            <h5 class="mt-3">Coach response</h5>
+            <pre id="generated-response">{{response}}</pre>
+        </div>
+    {% endif %}
 </div>
+
+<script>
+    
+    // Listener to resize text box
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Get text area element
+        const chatInput = document.getElementById('coach-input');
+        const submitButton = document.getElementById('submit-prompt');
+
+        // Ensure height is resized automatically 
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                submitButton.click()
+            }
+        })
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        {% if response %}
+            const response_field = document.getElementById('generated-response');
+            let generated_response = response_field.innerHTML.split('');
+            const response_length = generated_response.length
+            response_field.innerHTML = "";
+
+        async function stream() {
+            for (let i = 0; i < response_length; i++) {
+                const chartoadd = generated_response.shift();
+                response_field.innerHTML = response_field.innerHTML + chartoadd;
+                await delay(1);
+            }
+        }
+        stream();
+        {% endif %}
+
+    })
+</script>
+
 {% endblock %}

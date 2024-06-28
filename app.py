@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 
 from db_utils import db_init, db_execute
 from helpers import login_required, validate_credentials, apology, encrypt_message, decrypt_message
+from engine import ChatEngine
 from strava import Strava
 import requests
 import math
@@ -65,9 +66,25 @@ def index():
 
     return render_template("index.html", activities = activities, refreshed = refreshed)
 
-@app.route("/coach")
+@app.route("/coach", methods = ["GET", "POST"])
 @login_required
 def coach():
+
+    # If it's a POST, the user has submitted a message
+    if request.method == 'POST':
+        
+        # Get the user prompt
+        prompt = request.form.get('prompt')
+        
+        if prompt != "":
+            # Fire up the chat engine and get response
+            engine = ChatEngine()
+            activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ?;", params = (session['user_id'],))
+            response = engine.generate_response(question=prompt, activities = activities)
+            print(f"Response: {response}")
+            
+            # Render template with the response
+            return render_template("coach.html", response = response)
 
     return render_template("coach.html")
 
