@@ -13,7 +13,7 @@ Home
             <!--<h5 class="mt-3">Coach response</h5>-->
             {% if row['role'] == 'user' %}
                 <div class="response-container my-4 user-response">
-                <img src="https://dgalywyr863hv.cloudfront.net/pictures/athletes/54005895/27104872/1/large.jpg" class="chat-img rounded-circle">
+                <img src="{{user_img}}" class="chat-img rounded-circle">
                 <pre class="mt-2 user-msg">{{row['content']}}</pre>
             {% else %}
                 <div class="response-container my-4 coach-response">
@@ -36,7 +36,7 @@ Home
         <input type="hidden" name="refresh" value="No" id="refresh-input">
 
             <div class="message-line">
-                <img src="https://dgalywyr863hv.cloudfront.net/pictures/athletes/54005895/27104872/1/large.jpg" class="chat-img rounded-circle" alt="User image">
+                <img src="{{user_img}}" class="chat-img rounded-circle" alt="User image">
             
                     <textarea id="coach-input" placeholder="Enter a message for the coach" name="prompt" autofocus></textarea>
                     <img src="static/media/send_msg.png" class="chat-img-send rounded-circle" id="send-msg" alt="Submit message" title="Send message">

@@ -61,7 +61,6 @@ class ChatEngine():
         # Create new question_context line
         question_context = {"role": "user", "content": f"Context: {context}\n\n---\n\nQuestion: {question}\n\n---\n\Response: "}
         messages = self.conversation_history + [question_context]
-        print(messages)
         
         # Get chat response
         try:

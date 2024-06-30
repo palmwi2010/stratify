@@ -70,6 +70,23 @@ def index():
 @app.route("/coach", methods = ["GET", "POST"])
 @login_required
 def coach():
+    
+    # Check they have a valid access key
+    try:
+        access_key = db_execute(DB_PATH, "SELECT access_key FROM users WHERE id = ?;", params=(session["user_id"],))[0]['access_key']
+    except:
+        return apology('Could not find user id in database records.')
+    
+    if access_key is None:
+        return redirect("/authorise")
+    
+    # Get user image
+    result = db_execute(DB_PATH, "SELECT profile_img FROM users WHERE id = ?", params=(session["user_id"],))
+    if len(result) > 0:
+        user_img = result[0]['profile_img']
+    else:
+        print("Warning: Could not find user in row")
+        user_img = "static/media/athlete.png"
 
     # If it's a POST, the user has submitted a message
     if request.method == 'POST':
@@ -81,7 +98,7 @@ def coach():
         if request.form.get("refresh") == "Yes":
             if engine is not None:
                 engine.reset_chat()
-                return render_template("coach.html")
+                return render_template("coach.html", user_img = user_img)
         
         # Get the user prompt
         prompt = request.form.get('prompt')
@@ -98,13 +115,13 @@ def coach():
             print(f"Response: {response}")
             
             # Render template with the response
-            return render_template("coach.html", response = response, conversation_history = engine.conversation_history, chat_length = chat_length)
+            return render_template("coach.html", response = response, conversation_history = engine.conversation_history, chat_length = chat_length, user_img=user_img)
 
     # Clear any prior chats
     if engine is not None:
         engine.reset_chat()
 
-    return render_template("coach.html")
+    return render_template("coach.html", user_img=user_img)
 
 
 @app.route("/login", methods = ["GET", "POST"])
@@ -222,11 +239,14 @@ def authorise():
 
         # We can now submit post request for new access
         results = strava.exchange(auth_code)
+        
+        # Get user image with default if not found
+        user_img = results['athlete'].get("profile_medium","static/media/athlete.png")
 
         # If results successfully returned, update the users table and redirect to home
         if results != []:
-            db_execute(DB_PATH, "UPDATE users SET access_key = ?, refresh_key = ?, key_expires = ?", 
-                (encrypt_message(results['access_token']), encrypt_message(results['refresh_token']), results['expires_at']))
+            db_execute(DB_PATH, "UPDATE users SET profile_img = ?, access_key = ?, refresh_key = ?, key_expires = ?", 
+                (user_img,encrypt_message(results['access_token']), encrypt_message(results['refresh_token']), results['expires_at']))
             return redirect('/')
 
     if err_msg != '':

@@ -78,6 +78,7 @@ class Strava:
     
         return results
 
+
     def refresh_key(self, creds):
         """Refresh the access key using refresh token"""
 
