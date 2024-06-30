@@ -73,6 +73,8 @@ class Strava:
         refresh_token = results['refresh_token']
 
         # TODO: WE can get name of the user and profile photo from these results
+        print("RESULTS HERE!!")
+        print(results)
     
         return results
 

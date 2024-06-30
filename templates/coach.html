@@ -14,28 +14,38 @@ Home
             {% if row['role'] == 'user' %}
                 <div class="response-container my-4 user-response">
                 <img src="https://dgalywyr863hv.cloudfront.net/pictures/athletes/54005895/27104872/1/large.jpg" class="chat-img rounded-circle">
-                <pre id="generated-response" class="mt-2 user-msg">{{row['content']}}</pre>
+                <pre class="mt-2 user-msg">{{row['content']}}</pre>
             {% else %}
                 <div class="response-container my-4 coach-response">
                 <img src="/static/media/coach.png" class = "chat-img">
-                <pre id="generated-response" class="mt-2 coach-msg">{{row['content']}}</pre>
+                {% if loop.index == chat_length %}
+                    <pre id="generated-response" class="mt-2 coach-msg">{{row['content']}}</pre>
+                {% else %}
+                    <pre class="mt-2 coach-msg">{{row['content']}}</pre>
+                {% endif %}
             {% endif %}
             </div>
         {% endif %}
     {% endfor %}
     {% endif %}
 
+
     <!--<h5 class="my-2">Ask the coach a question</h5>-->
-    <div class="chat-container">
-        <form method = "POST" action="/coach">
-            <div class = "chat-form-container">
-            <textarea id="coach-input" placeholder="Enter a message for the coach" name="prompt" autofocus></textarea>
-            <button class = "btn btn-primary my-1" id="submit-prompt" name="submit">Submit</button>
-            <button class = "btn btn-secondary my-1 mx-3" id="reset-chat" name="reset">Reset chat</button>
+<div class="chat-container">
+    <form method = "POST" action="/coach" id="msg-form">
+        <input type="hidden" name="refresh" value="No" id="refresh-input">
+
+            <div class="message-line">
+                <img src="https://dgalywyr863hv.cloudfront.net/pictures/athletes/54005895/27104872/1/large.jpg" class="chat-img rounded-circle" alt="User image">
+            
+                    <textarea id="coach-input" placeholder="Enter a message for the coach" name="prompt" autofocus></textarea>
+                    <img src="static/media/send_msg.png" class="chat-img-send rounded-circle" id="send-msg" alt="Submit message" title="Send message">
+                    <img src="static/media/refresh.png" class="chat-img-small ms-1" id="refresh-chat" alt="Refresh chat" title="refresh-chat">
             </div>
-        </form>
-    </div>
+    </form>
 </div>
+</div>
+
 
 <script>
     
@@ -44,18 +54,31 @@ Home
 
         // Get text area element
         const chatInput = document.getElementById('coach-input');
-        const submitButton = document.getElementById('submit-prompt');
+        const submitButton = document.getElementById('send-msg');
+        const refreshButton = document.getElementById('refresh-chat');
+        const refreshInput = document.getElementById('refresh-input');
+        const msgForm = document.getElementById('msg-form');
+
+        submitButton.addEventListener('click', e => {
+            msgForm.submit();
+        })
+
+        refreshButton.addEventListener('click', e => {
+            refreshInput.value = "Yes";
+            msgForm.submit();
+        })
 
         // Ensure height is resized automatically 
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
+            
         });
 
         chatInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
-                submitButton.click()
+                msgForm.submit()
             }
         })
 

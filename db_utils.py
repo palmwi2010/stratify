@@ -46,6 +46,7 @@ class SQL(sqlite3.Connection):
                                 username TEXT NOT NULL UNIQUE,
                                 email TEXT NOT NULL UNIQUE,
                                 password_hash TEXT NOT NULL,
+                                profile_img TEXT,
                                 access_key TEXT,
                                 refresh_key TEXT,
                                 key_expires INT);""")

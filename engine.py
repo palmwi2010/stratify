@@ -16,8 +16,7 @@ class ChatEngine():
         self.system_prompt = self.create_system_prompt()
         
         # Set root conversation history (to be able to reset it later) and a rolling conversation history
-        self.root_conversation_history = [{"role": "system", "content": self.system_prompt}]
-        self.conversation_history = self.root_conversation_history
+        self.conversation_history = [{"role": "system", "content": self.system_prompt}]
             
 
     def create_system_prompt(self):
@@ -50,7 +49,7 @@ class ChatEngine():
     
     def reset_chat(self):
         """Clear conversation history"""
-        self.conversation_history = self.root_conversation_history
+        self.conversation_history = [{"role": "system", "content": self.system_prompt}]
     
     
     def generate_response(self, question, activities = [], model = "gpt-3.5-turbo", max_context_tokens = 500, max_output = 300):
@@ -58,11 +57,11 @@ class ChatEngine():
 
         # Create a context
         context = self.create_context(activities = activities, max_tokens = max_context_tokens)
-        print(context)
         
         # Create new question_context line
-        question_context = [{"role": "user", "content": f"Context: {context}\n\n---\n\nQuestion: {question}\n\n---\n\Response: "}]
-        messages = self.conversation_history + question_context
+        question_context = {"role": "user", "content": f"Context: {context}\n\n---\n\nQuestion: {question}\n\n---\n\Response: "}
+        messages = self.conversation_history + [question_context]
+        print(messages)
         
         # Get chat response
         try:

@@ -63,7 +63,7 @@ def index():
             refreshed = True
 
     # Get the results from SQL
-    activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ?;", params = (session['user_id'],))
+    activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ? ORDER BY date_sort DESC;", params = (session['user_id'],))
 
     return render_template("index.html", activities = activities, refreshed = refreshed)
 
@@ -76,9 +76,9 @@ def coach():
         
         # Use global engine
         global engine
-        
+                
         # Check if the user reset
-        if request.form.get("reset") is not None:
+        if request.form.get("refresh") == "Yes":
             if engine is not None:
                 engine.reset_chat()
                 return render_template("coach.html")
@@ -92,13 +92,17 @@ def coach():
                 engine = ChatEngine()
                 
             # Get activities and submit for response
-            activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ?;", params = (session['user_id'],))
+            activities = db_execute(DB_PATH, "SELECT * FROM activities WHERE athlete_id = ? ORDER BY date_sort DESC;", params = (session['user_id'],))
             response = engine.generate_response(question=prompt, activities = activities)
-            #response = "Sorry, I can't help with that! If you have any questions about your training or fitness goals, feel free to ask!"
+            chat_length = len(engine.conversation_history)
             print(f"Response: {response}")
             
             # Render template with the response
-            return render_template("coach.html", response = response, conversation_history = engine.conversation_history)
+            return render_template("coach.html", response = response, conversation_history = engine.conversation_history, chat_length = chat_length)
+
+    # Clear any prior chats
+    if engine is not None:
+        engine.reset_chat()
 
     return render_template("coach.html")
 
