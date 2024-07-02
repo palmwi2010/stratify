@@ -136,12 +136,6 @@ def login():
         username = request.form.get("input_username")
         password = request.form.get("input_password")
 
-        # Check for valid inputs
-        if len(username) < 6:
-            return render_template("login.html", feedback = "Invalid username")
-        elif len(password) < 6:
-            return render_template("login.html", feedback = "Invalid password")
-
         # Check results
         results = db_execute(DB_PATH, "SELECT * FROM users WHERE username = ?;", params=(username,))
 
@@ -153,7 +147,7 @@ def login():
 
         # Check password
         if not bcrypt.check_password_hash(results[0]["password_hash"], password):
-            return render_template("login.html", feedback = "Incorrect password. Please try again.")
+            return render_template("login.html", feedback = "Incorrect password. Please try again.", username = username)
 
         # Update session id and login
         session["user_id"] = results[0]["id"]
@@ -190,7 +184,12 @@ def register():
 
         # If check fails, return to register page with relevant feedback
         if check != 0:
-            return render_template("register.html", feedback = check)
+            if check == 3: # Only password failed
+                return render_template("register.html", feedback = check, email = creds["email"], username = creds["username"])
+            elif check == 2 or check == 4:
+                return render_template("register.html", feedback = check, email = creds["email"])
+            else:
+                return render_template("register.html", feedback = check)
 
         # Hash the password
         hash = bcrypt.generate_password_hash(creds["password"]).decode('utf-8')

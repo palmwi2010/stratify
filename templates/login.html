@@ -11,12 +11,16 @@ Login
     <form action="/login" method = "post">
         <div class = "form-group my-4">
             <label for="input_username">Username</label>
+            {% if username %}
+            <input type = "text" class = "form-control mt-2" id = "input_username" name = "input_username" value={{username}}>
+            {% else %}
             <input type = "text" class = "form-control mt-2" id = "input_username" name = "input_username" placeholder="Enter username" autofocus>
+            {% endif %}
             <small id = "username_help" class = "form-text text-muted"  style = "display:none;">Username should be at least 6 characters with at least one number</small>
         </div>
         <div class = "form-group my-4">
             <label for = "input_password">Password</label>
-            <input type = "password" class = "form-control mt-2" id = "input_password" name = "input_password" placeholder="Password">
+            <input type = "password" class = "form-control mt-2" id = "input_password" name = "input_password" placeholder="Password" autofocus>
             <small id = "password_help" class = "form-text text-muted" style = "display:none;">Password should be at least 6 characters including at least one number and one symbol</small>
         </div>
             <button type="submit" class = "btn btn-primary">Submit</button>

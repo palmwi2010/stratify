@@ -8,22 +8,30 @@ Register
 
 <div class = "container forms-input my-5">
     <h1>Register</h1>
-    <form action="/register" method = "post">
+    <form action="/register" method = "post" id="register-form">
         <div class = "form-group my-4">
             <label for="input_email">Email</label>
+            {% if email %}
+            <input type = "email" class = "form-control mt-2" id = "input_email"  name = "input_email" value={{email}}>
+            {% else %}
             <input type = "email" class = "form-control mt-2" id = "input_email"  name = "input_email" placeholder="Email" autofocus>
+            {% endif %}
         </div>
         <div class = "form-group my-4">
             <label for="input_username">Username</label>
+            {% if username %}
+            <input type = "text" class = "form-control mt-2" id = "input_username" name = "input_username" value={{username}}>
+            {% else %}
             <input type = "text" class = "form-control mt-2" id = "input_username" name = "input_username" placeholder="Enter username" autofocus>
-            <small id = "username_help" class = "form-text text-muted">Username should be at least 6 characters with at least one number</small>
+            {% endif %}
+            <small id = "username_help" class = "form-text text-muted">Username should be at least 6 characters with only alphanumeric characters</small>
         </div>
         <div class = "form-group my-4">
             <label for = "input_password">Password</label>
-            <input type = "password" class = "form-control mt-2" id = "input_password" name = "input_password" placeholder="Password">
+            <input type = "password" class = "form-control mt-2" id = "input_password" name = "input_password" placeholder="Password" autofocus>
             <small id = "password_help" class = "form-text text-muted">Password should be at least 6 characters including at least one number and one symbol</small>
         </div>
-            <button type="submit" class = "btn btn-primary">Submit</button>
+            <button type="submit" class = "btn btn-primary" id="register-btn">Submit</button>
             <p class = "feedback mt-2">
                 {% if feedback == 1 %}
                 Invalid email - please try again.
@@ -40,5 +48,18 @@ Register
     </form>
 </div>
 
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.getElementById('register-btn');
+        const form = document.getElementById('register-form');
+
+        button.addEventListener('click', e => {
+            form.submit();
+            button.disabled = true;
+        })
+    })
+
+</script>
 
 {% endblock %}
