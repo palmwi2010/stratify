@@ -1,15 +1,15 @@
 from flask import Flask, flash, get_flashed_messages, render_template, redirect, request, session
 from flask_session import Session
 from flask_bcrypt import Bcrypt
-
-from db_utils import db_init, db_execute
-from helpers import login_required, validate_credentials, apology, encrypt_message, decrypt_message
-from engine import ChatEngine
-from strava import Strava
-import requests
-import math
 from dotenv import load_dotenv
 import os
+
+from db_utils import db_init, db_execute
+from helpers import login_required, validate_credentials, apology, encrypt_message, decrypt_message, access_required
+from engine import ChatEngine
+from strava import Strava
+from analytics import Analyzer
+
 
 # Run command
 # waitress-serve --listen=127.0.0.1:5000 app:app
@@ -42,16 +42,8 @@ def after_request(response):
 
 @app.route("/", methods = ["GET", "POST"])
 @login_required
+@access_required
 def index():
-
-    # Check they have a valid access key
-    try:
-        access_key = db_execute(DB_PATH, "SELECT access_key FROM users WHERE id = ?;", params=(session["user_id"],))[0]['access_key']
-    except:
-        return apology('Could not find user id in database records.')
-    
-    if access_key is None:
-        return redirect("/authorise")
 
     # Assume no activity refresh
     refreshed = False
@@ -67,8 +59,38 @@ def index():
 
     return render_template("index.html", activities = activities, refreshed = refreshed)
 
+@app.route("/dashboard", methods = ["GET", "POST"])
+@login_required
+@access_required
+def dashboard():
+    
+    # Get the results from SQL
+    activities = db_execute(DB_PATH, """SELECT * FROM activities WHERE athlete_id = ? ORDER BY 
+                            date_sort DESC;""", params = (session['user_id'],))
+    
+    # Initialize analyzer
+    analyzer = Analyzer(activities)
+    
+    # Check for user input on activity type
+    if request.method == 'POST':
+        activity_type = request.form.get('activity-type')
+    else:
+        activity_type = 'All'
+    
+    # Get activity based on the activity type
+    if activity_type != 'All':
+        distances = analyzer.distance_aggregator(activity_type=activity_type)
+        cumul_distances = analyzer.cumulative_distances(activity_type=activity_type)
+    else:
+        distances = analyzer.distance_aggregator()
+        cumul_distances = analyzer.cumulative_distances()
+    
+    return render_template('dashboard.html', distances = distances, cumul_distances = cumul_distances, activity_type=activity_type)
+
+
 @app.route("/coach", methods = ["GET", "POST"])
 @login_required
+@access_required
 def coach():
     
     # Check they have a valid access key
@@ -216,7 +238,11 @@ def authorise():
     # If it's been Posted, it's a deathorisation
     if request.method == "POST":
         if request.form.get("deauthorise") == 'deauthorise':
-            strava.deauthorise(session["user_id"], DB_PATH=DB_PATH)
+            try:
+                strava.deauthorise(session["user_id"], DB_PATH=DB_PATH)
+            except:
+                return redirect("/authorise")
+            
             return redirect ("/")
 
     # Check if already authorised

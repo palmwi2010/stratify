@@ -31,6 +31,24 @@ def login_required(f):
 
     return wrapped_func
 
+def access_required(f):
+    """Wrap function to ensure user is authorised with Strava to access it"""
+
+    @wraps(f)
+    def wrapped_func(* args, ** kwargs):
+        # Check they have a valid access key
+        try:
+            access_key = db_execute(DB_PATH, "SELECT access_key FROM users WHERE id = ?;", params=(session["user_id"],))[0]['access_key']
+        except:
+            return apology('Could not find user id in database records.')
+
+        if access_key is None:
+            return redirect("/authorise")
+
+        return f(* args, ** kwargs)
+
+    return wrapped_func
+
 
 def validate_credentials(creds):
     """Ensure user registration credentials provided are valid"""

@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block main %}
+<div class = "container my-3">
+    <h1>Dashboard</h1>
+    <p class="my-2">Select activity type and check out your progress below!</p>
+    <form method="post" action="/dashboard">
+        <div class="check-container ms-2 mt-3">
+            <input type="radio" class="activity-type form-check-input" value="All" id = "all-analysis" name="activity-type"
+            {% if activity_type == 'All' %}checked{% endif %}></input>
+                <label class="form-check-label" for="all-analysis">All</label>
+            <input type="radio" class="activity-type form-check-input" value="Run" id = "run-analysis" name="activity-type"
+            {% if activity_type == 'Run' %}checked{% endif %}></input>
+                <label class="form-check-label" for="run-analysis">Run</label>
+            <input type="radio" class="activity-type form-check-input" value="Ride" id="ride-analysis" name="activity-type"
+            {% if activity_type == 'Ride' %}checked{% endif %}></input>
+                <label class="form-check-label" for="ride-analysis">Ride</label>
+            <input type="radio" class="activity-type form-check-input" value="Walk" id="walk-analysis" name="activity-type"
+            {%if activity_type == 'Walk' %}checked{% endif %}></input>
+                <label class="form-check-label" for="walk-analysis">Walk</label>
+        </div>
+        <button class = "btn btn-primary mt-3">Go!</button>
+    </form>
+    <div class = "container my-3" id="curve_chart" style="width: 800px; height: 400px;"></div>
+    <div class="container my-3" id="cumul_distance_chart" style="width: 800px; height: 400px;"></div>
+</div>
+
+<script>
+    google.charts.load('current', {packages: ['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+
+        // Get data from Flask
+        var dataDistances = {{ distances | safe }};
+        
+        // Convert to Google Charts format
+        var dataA = new google.visualization.DataTable();
+        dataA.addColumn('number', 'Year');
+        dataA.addColumn('number', 'Distance');
+
+        // Add data
+        dataDistances.forEach(function(row) {
+            dataA.addRow([row.year, row.distance]);
+        })
+
+        // Set options
+        var optionsA = {
+            title: 'Total distances by year, KM',
+            chartArea: {'width': '80%', 'height': '70%'},
+            legend: 'none',
+            hAxis: {
+                title: 'Year',
+                gridlines: {color: 'transparent'},
+                format: ''
+            },
+            backgroundColor: { fill:'#EEEEEE' }
+        };
+
+
+
+        // Create chart element
+        const chart_div = document.getElementById('curve_chart');
+        var chartA = new google.visualization.LineChart(chart_div);
+
+        // Draw the chart
+        chartA.draw(dataA, optionsA);
+
+        // Chart B: Cumulative distances
+        var dataCumulDistances = {{ cumul_distances | safe }};
+
+        // Convert to Google Charts format
+        var dataB = new google.visualization.DataTable();
+        dataB.addColumn('string', 'Date');
+        
+        // Get unique years and dates
+        var yrs_unique = [...new Set(dataCumulDistances.map(row => row['year']))];
+        var num_years = yrs_unique.length;
+
+        // Filter for unique dates starting from 1st Jan
+        if (num_years > 1) {
+            full_dts = dataCumulDistances.filter(function(v, i, self) {
+                return v['year'] == yrs_unique[1]
+            })
+            var dts_unique = [...new Set(full_dts.map(row => row['date_long']))]
+        } else {
+            var dts_unique = [...new Set(dataCumulDistances.map(row => row['date_long']))]
+        }
+
+        // Add columns and data
+        yrs_unique.forEach(yr => dataB.addColumn('number', yr));
+        
+        // Add data
+        dts_unique.forEach(dt => {
+            // Filter for all same dates
+            let subfilter = dataCumulDistances.filter(function(v, i, self) {
+                return v['date_long'] == dt;
+            })
+
+            // Add distances for each year
+            let distances = new Array(num_years).fill(NaN);
+            for (let i = 0; i < num_years; i++) {
+                subfilter.forEach(row => {
+                    if (row['year'] == yrs_unique[i]) {
+                        distances[i] = row['distance'];
+                    }
+                })
+            }
+
+            // Add to data
+            distances.unshift(dt);
+            dataB.addRow(distances);
+        })
+
+        var optionsB = {
+            title: 'Cumulative distance by year, KM',
+            legend: { position: 'bottom' },
+            chartArea: {'width': '80%', 'height': '70%'},
+            hAxis: {
+                title: 'Date',
+            },
+            vAxis: {
+                title: 'Distance YTD, KM',
+            },
+            backgroundColor: { fill:'#EEEEEE' }
+        };
+
+        // Format tooltips
+        var formatter = new google.visualization.NumberFormat({
+            pattern: '###km' // Define your pattern here
+            });
+
+        for (let i = 0; i < num_years; i++) {
+            formatter.format(dataB, i + 1);
+        }
+
+        var chartB = new google.visualization.LineChart(document.getElementById('cumul_distance_chart'));
+        chartB.draw(dataB, optionsB);
+    }
+
+</script>
+{% endblock %}
+
