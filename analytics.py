@@ -80,8 +80,6 @@ class Analyzer():
         # Get all date values in range
         min_date = df["date_obj"].min()
         max_date = df["date_obj"].max()
-        print(min_date)
-        print(max_date)
         date_range = pd.date_range(start=min_date, end=max_date)
         
         # Ensure all dates in the range are in the DataFrame with distance as 0 if not present
@@ -99,10 +97,7 @@ class Analyzer():
         
         # Remove redundant columns and format date as string
         df_full['date'] = df_full['date_obj'].dt.strftime("%Y-%m-%d")
-        df_full['date_long'] = df_full['date_obj'].dt.strftime('%d %b')
-        #df_full['date_long'] = df_full['date_obj'].apply(lambda dt: datetime
-        #                                                 (2000, dt.month, dt.day))
-    
+        df_full['date_long'] = df_full['date_obj'].dt.strftime('%d %b')    
         df_full = df_full.drop(['date_obj','distance'], axis = 1)
 
         # Rename columns and convert to list of dictionaries
@@ -110,6 +105,3 @@ class Analyzer():
         data = df_full.to_dict(orient='records')
         
         return data
-        
-tester = Analyzer()
-df_out = tester.cumulative_distances("Run")
